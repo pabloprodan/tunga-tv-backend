@@ -5,17 +5,14 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
 app.use(cors());
 app.use(express.json());
 
-// PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// Create tables if not exists
 const initDB = async () => {
   try {
     await pool.query(`
@@ -25,7 +22,6 @@ const initDB = async () => {
         password TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       );
-      
       CREATE TABLE IF NOT EXISTS favorites (
         id SERIAL PRIMARY KEY,
         user_email TEXT,
@@ -35,7 +31,6 @@ const initDB = async () => {
         poster TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       );
-      
       CREATE TABLE IF NOT EXISTS history (
         id SERIAL PRIMARY KEY,
         user_email TEXT,
@@ -46,19 +41,28 @@ const initDB = async () => {
         watched_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log('✅ Database initialized');
+    console.log('DB initialized');
   } catch (err) {
     console.error('DB init error:', err);
   }
 };
 initDB();
 
-// Health check
 app.get('/', (req, res) => {
   res.json({ status: 'Tunga TV API is running!', version: '2.0' });
 });
 
-// TMDB Proxy
+// ── SISTEMA DE ACTUALIZACIONES ─────────────────────────────────────────────
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '11.2.2',
+    apkUrl: 'https://github.com/pabloprodan/tunga-tv-backend/releases/download/v11.2.2/tunga-stream.apk',
+    forceUpdate: false,
+    changelog: 'Mejoras de estabilidad y rendimiento'
+  });
+});
+
+// ── TMDB PROXY ─────────────────────────────────────────────────────────────
 app.get('/api/tmdb/:endpoint', async (req, res) => {
   try {
     const { endpoint } = req.params;
@@ -72,7 +76,7 @@ app.get('/api/tmdb/:endpoint', async (req, res) => {
   }
 });
 
-// Favorites
+// ── FAVORITES ──────────────────────────────────────────────────────────────
 app.post('/api/favorites', async (req, res) => {
   const { user_email, media_id, media_type, title, poster } = req.body;
   try {
@@ -106,7 +110,7 @@ app.get('/api/favorites/:email', async (req, res) => {
   }
 });
 
-// History
+// ── HISTORY ────────────────────────────────────────────────────────────────
 app.post('/api/history', async (req, res) => {
   const { user_email, media_id, media_type, title, poster } = req.body;
   try {
@@ -131,5 +135,5 @@ app.get('/api/history/:email', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Tunga TV Backend running on port ${PORT}`);
+  console.log(`Tunga TV Backend running on port ${PORT}`);
 });
