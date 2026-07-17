@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const apiRoutes = require('./api/index');
+const apiRoutes = require('./api/routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,3 +35,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 TungaTV Backend running on port ${PORT}`);
 });
+
+module.exports = app;
